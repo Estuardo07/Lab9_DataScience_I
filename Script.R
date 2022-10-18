@@ -6,15 +6,19 @@ library(ggplot2)
 library(shinydashboard)
 
 ui <- dashboardPage(
-  dashboardHeader(title = "Matrimonios con menores de edad en Guatemala del 2010 al 2020"),
+  skin = "yellow",
+  dashboardHeader(title = "Matrimonios con menores de edad en Guatemala del 2010 al 2020", titleWidth = 700),
   dashboardSidebar(),
   dashboardBody(
     # Boxes need to be put in a row (or column)
     fluidRow(
-      box(plotOutput("plot1")),
+      box(
+        title = "Histogram", background = "navy", solidHeader = TRUE,
+        plotOutput("plot1")
+      ),
       
       box(
-        title = "Controls",
+        title = "Controls", status = "danger",
         sliderInput("slider", "Number of observations:", 2010, 2020, 2017)
       )
     )
