@@ -1,8 +1,7 @@
 ## ui.R ## library(openxlsx)
+library(openxlsx)
 library(tidyverse)
 library(ggplot2)
-
-
 library(shinydashboard)
 
 ui <- dashboardPage(
@@ -112,6 +111,7 @@ server <- function(input, output) {
   })
   output$progressBox <- renderInfoBox({
     #Matrimonio donde almenos uno es menor de edad
+    db<-read.xlsx('menoresDeEdad.xlsx')
     
     edadParejaAlMenosUnMenor<-subset(db, select=c('Edad.del.hombre','Edad.de.la.mujer','Escolaridad.del.hombre','Escolaridad.de.la.mujer','Año.de.registro'),db$Edad.de.la.mujer<18 | db$Edad.del.hombre<18)
     edadParejaAlMenosUnMenor<-filter(edadParejaAlMenosUnMenor,edadParejaAlMenosUnMenor$Año.de.registro<=input$slider)
@@ -124,6 +124,7 @@ server <- function(input, output) {
     
   })
   output$cantHombre<-renderInfoBox({
+    db<-read.xlsx('menoresDeEdad.xlsx')
     edadParejaAlMenosUnMenor<-subset(db, select=c('Edad.del.hombre','Edad.de.la.mujer','Escolaridad.del.hombre','Escolaridad.de.la.mujer','Año.de.registro'),db$Edad.de.la.mujer<18 | db$Edad.del.hombre<18)
     edadParejaAlMenosUnMenor<-filter(edadParejaAlMenosUnMenor,edadParejaAlMenosUnMenor$Año.de.registro<=input$slider)
     
@@ -136,6 +137,7 @@ server <- function(input, output) {
     
   })
   output$cantMujer<-renderInfoBox({
+    db<-read.xlsx('menoresDeEdad.xlsx')
     edadParejaAlMenosUnMenor<-subset(db, select=c('Edad.del.hombre','Edad.de.la.mujer','Escolaridad.del.hombre','Escolaridad.de.la.mujer','Año.de.registro'),db$Edad.de.la.mujer<18 | db$Edad.del.hombre<18)
     edadParejaAlMenosUnMenor<-filter(edadParejaAlMenosUnMenor,edadParejaAlMenosUnMenor$Año.de.registro<=input$slider)
     
@@ -147,6 +149,8 @@ server <- function(input, output) {
     
   })
   output$chartHombre<-renderPlot({
+    db<-read.xlsx('menoresDeEdad.xlsx')
+    edadParejaAlMenosUnMenor<-subset(db, select=c('Edad.del.hombre','Edad.de.la.mujer','Escolaridad.del.hombre','Escolaridad.de.la.mujer','Año.de.registro'),db$Edad.de.la.mujer<18 | db$Edad.del.hombre<18)
     
     edadParejaAlMenosUnMenor<-filter(edadParejaAlMenosUnMenor,edadParejaAlMenosUnMenor$Año.de.registro<=input$slider)
     EscoH<-edadParejaAlMenosUnMenor %>%
@@ -188,7 +192,8 @@ server <- function(input, output) {
  
   })
   output$piechartHombre<-renderPlot({
-
+    db<-read.xlsx('menoresDeEdad.xlsx')
+    edadParejaAlMenosUnMenor<-subset(db, select=c('Edad.del.hombre','Edad.de.la.mujer','Escolaridad.del.hombre','Escolaridad.de.la.mujer','Año.de.registro'),db$Edad.de.la.mujer<18 | db$Edad.del.hombre<18)
     
     edadParejaAlMenosUnMenor<-filter(edadParejaAlMenosUnMenor,edadParejaAlMenosUnMenor$Año.de.registro<=input$slider)
     EscoH<-edadParejaAlMenosUnMenor %>%
@@ -235,6 +240,8 @@ server <- function(input, output) {
   })
   #Mujer
   output$chartMujer<-renderPlot({
+    db<-read.xlsx('menoresDeEdad.xlsx')
+    edadParejaAlMenosUnMenor<-subset(db, select=c('Edad.del.hombre','Edad.de.la.mujer','Escolaridad.del.hombre','Escolaridad.de.la.mujer','Año.de.registro'),db$Edad.de.la.mujer<18 | db$Edad.del.hombre<18)
     
     edadParejaAlMenosUnMenor<-filter(edadParejaAlMenosUnMenor,edadParejaAlMenosUnMenor$Año.de.registro<=input$slider)
     EscoH<-edadParejaAlMenosUnMenor %>%
@@ -276,6 +283,8 @@ server <- function(input, output) {
     
   })
   output$piechartMujer<-renderPlot({
+    db<-read.xlsx('menoresDeEdad.xlsx')
+    edadParejaAlMenosUnMenor<-subset(db, select=c('Edad.del.hombre','Edad.de.la.mujer','Escolaridad.del.hombre','Escolaridad.de.la.mujer','Año.de.registro'),db$Edad.de.la.mujer<18 | db$Edad.del.hombre<18)
     
     edadParejaAlMenosUnMenor<-filter(edadParejaAlMenosUnMenor,edadParejaAlMenosUnMenor$Año.de.registro<=input$slider)
     EscoH<-edadParejaAlMenosUnMenor %>%
