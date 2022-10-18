@@ -7,17 +7,40 @@ library(shinydashboard)
 
 ui <- dashboardPage(
   dashboardHeader(title = "Matrimonios con menores de edad en Guatemala del 2010 al 2020"),
-  dashboardSidebar(),
+  dashboardSidebar(disable = TRUE),
   dashboardBody(
     # Boxes need to be put in a row (or column)
     fluidRow(
       box(plotOutput("plot1")),
       
       box(
-        title = "Controls",
+        title = "Year",
         sliderInput("slider", "Number of observations:", 2010, 2020, 2017)
       )
-    )
+    ),
+    #cantidad de matrimonios infantiles en ese ano
+    fluidRow(
+      # A static infoBox
+      
+      # Dynamic infoBoxes
+      infoBoxOutput("progressBox"),
+      infoBoxOutput("cantHombre"),
+      infoBoxOutput("cantMujer")
+     
+    ),
+    
+    # Boxes need to be put in a row (or column)
+    fluidRow(
+      box(plotOutput("chartHombre")),
+      box(plotOutput("piechartHombre"))
+      
+    ),
+    fluidRow(
+      box(plotOutput("chartMujer")),
+      box(plotOutput("piechartMujer"))
+      
+    ),
+   
   )
 )
 
@@ -77,10 +100,227 @@ server <- function(input, output) {
       theme(legend.position="none")+scale_x_continuous(breaks = c(2010	,2011	,2012	,2013	,2014	,2015	,2016	,2017	,2018,	2019,	2020))
     
   })
+  output$progressBox <- renderInfoBox({
+    #Matrimonio donde almenos uno es menor de edad
+    
+    edadParejaAlMenosUnMenor<-subset(db, select=c('Edad.del.hombre','Edad.de.la.mujer','Escolaridad.del.hombre','Escolaridad.de.la.mujer','Año.de.registro'),db$Edad.de.la.mujer<18 | db$Edad.del.hombre<18)
+    edadParejaAlMenosUnMenor<-filter(edadParejaAlMenosUnMenor,edadParejaAlMenosUnMenor$Año.de.registro<=input$slider)
+    
+    
+    infoBox(
+      "Cantidad de matrimonios infantiles ", paste0(nrow(edadParejaAlMenosUnMenor)), icon = icon("list"),
+      color = "purple"
+    )
+    
+  })
+  output$cantHombre<-renderInfoBox({
+    edadParejaAlMenosUnMenor<-subset(db, select=c('Edad.del.hombre','Edad.de.la.mujer','Escolaridad.del.hombre','Escolaridad.de.la.mujer','Año.de.registro'),db$Edad.de.la.mujer<18 | db$Edad.del.hombre<18)
+    edadParejaAlMenosUnMenor<-filter(edadParejaAlMenosUnMenor,edadParejaAlMenosUnMenor$Año.de.registro<=input$slider)
+    
+    
+    
+    infoBox(
+      "Cantidad de matrimonios de niños menores de 18 años ", paste0(sum(edadParejaAlMenosUnMenor$Edad.del.hombre<18)), icon = icon("list"),
+      color = "blue"
+    )
+    
+  })
+  output$cantMujer<-renderInfoBox({
+    edadParejaAlMenosUnMenor<-subset(db, select=c('Edad.del.hombre','Edad.de.la.mujer','Escolaridad.del.hombre','Escolaridad.de.la.mujer','Año.de.registro'),db$Edad.de.la.mujer<18 | db$Edad.del.hombre<18)
+    edadParejaAlMenosUnMenor<-filter(edadParejaAlMenosUnMenor,edadParejaAlMenosUnMenor$Año.de.registro<=input$slider)
+    
+    
+    infoBox(
+      "Cantidad de matrimonios de niñas menores de 18 años ", paste0(sum(edadParejaAlMenosUnMenor$Edad.de.la.mujer<18)), icon = icon("list"),
+      color = "blue"
+    )
+    
+  })
+  output$chartHombre<-renderPlot({
+    
+    edadParejaAlMenosUnMenor<-filter(edadParejaAlMenosUnMenor,edadParejaAlMenosUnMenor$Año.de.registro<=input$slider)
+    EscoH<-edadParejaAlMenosUnMenor %>%
+      group_by(`Escolaridad.del.hombre`) %>%
+      tally()
+    
+    
+    EscoM<-edadParejaAlMenosUnMenor %>%
+      group_by(`Escolaridad.de.la.mujer`) %>%
+      tally()
+    
+    
+    EscolaridadHombre<-c(EscoH$`Escolaridad.del.hombre`)
+    CantidadEscolaridadHombre<-c(EscoH$n)
+    
+    EscoH<-data.frame(EscolaridadHombre,CantidadEscolaridadHombre)
+    # EscoH$EscolaridadHombre<-as.factor(EscoH$EscolaridadHombre)
+    
+    EscolaridadMujer<-c(EscoM$`Escolaridad.de.la.mujer`)
+    CantidadEscolaridadMujer<-c(EscoM$n)
+    
+    EscoM<-data.frame(EscolaridadMujer,CantidadEscolaridadMujer)
+    # EscoM$EscolaridadMujer<-as.factor(EscoM$EscolaridadMujer)
+    
+    EscoH$EscolaridadHombre[EscoH$EscolaridadHombre=='1']<-'Ninguno'
+    EscoH$EscolaridadHombre[EscoH$EscolaridadHombre=='2']<-'Primaria'
+    EscoH$EscolaridadHombre[EscoH$EscolaridadHombre=='3']<-'Basico'
+    EscoH$EscolaridadHombre[EscoH$EscolaridadHombre=='4']<-'Diversificado'
+    EscoH$EscolaridadHombre[EscoH$EscolaridadHombre=='5']<-'Universitario'
+    EscoH$EscolaridadHombre[EscoH$EscolaridadHombre=='6']<-'Postgrado'
+    EscoH$EscolaridadHombre[EscoH$EscolaridadHombre=='9']<-'Ignorado'
+  
+    ggplot(data=EscoH, aes(x=EscolaridadHombre, y=CantidadEscolaridadHombre,fill=EscolaridadHombre)) +
+      geom_bar(stat="identity", position=position_dodge())+
+      geom_text(aes(label=CantidadEscolaridadHombre), vjust=1.6, color="black",
+                position = position_dodge(0.9), size=3.5)+
+      labs(title="Escolaridad de los hombres con matrimonio", y="Cantidad de matrimonios ")+
+      theme(legend.position="none")
  
+  })
+  output$piechartHombre<-renderPlot({
+
+    
+    edadParejaAlMenosUnMenor<-filter(edadParejaAlMenosUnMenor,edadParejaAlMenosUnMenor$Año.de.registro<=input$slider)
+    EscoH<-edadParejaAlMenosUnMenor %>%
+      group_by(`Escolaridad.del.hombre`) %>%
+      tally()
+    
+    
+    EscoM<-edadParejaAlMenosUnMenor %>%
+      group_by(`Escolaridad.de.la.mujer`) %>%
+      tally()
+    
+    
+    EscolaridadHombre<-c(EscoH$`Escolaridad.del.hombre`)
+    CantidadEscolaridadHombre<-c(EscoH$n)
+    
+    EscoH<-data.frame(EscolaridadHombre,CantidadEscolaridadHombre)
+    # EscoH$EscolaridadHombre<-as.factor(EscoH$EscolaridadHombre)
+    
+    EscolaridadMujer<-c(EscoM$`Escolaridad.de.la.mujer`)
+    CantidadEscolaridadMujer<-c(EscoM$n)
+    
+    EscoM<-data.frame(EscolaridadMujer,CantidadEscolaridadMujer)
+    # EscoM$EscolaridadMujer<-as.factor(EscoM$EscolaridadMujer)
+    
+    EscoH$EscolaridadHombre[EscoH$EscolaridadHombre=='1']<-'Ninguno'
+    EscoH$EscolaridadHombre[EscoH$EscolaridadHombre=='2']<-'Primaria'
+    EscoH$EscolaridadHombre[EscoH$EscolaridadHombre=='3']<-'Basico'
+    EscoH$EscolaridadHombre[EscoH$EscolaridadHombre=='4']<-'Diversificado'
+    EscoH$EscolaridadHombre[EscoH$EscolaridadHombre=='5']<-'Universitario'
+    EscoH$EscolaridadHombre[EscoH$EscolaridadHombre=='6']<-'Postgrado'
+    EscoH$EscolaridadHombre[EscoH$EscolaridadHombre=='9']<-'Ignorado'
+
+    pd<-round(((CantidadEscolaridadHombre*100)/sum(EscoH$CantidadEscolaridadHombre)),digits = 2)
+    
+    
+    ggplot(EscoH, aes(x = "", y = pd, fill = EscolaridadHombre)) +
+      geom_col(color = "black") +
+      geom_label(aes(label = pd),
+                 position = position_stack(vjust = 0.5),
+                 show.legend = FALSE) +
+      coord_polar(theta = "y")+theme(legend.position = "bottom")+
+      labs(title="Porcentaje de escolaridad de los hombres")
+    
+  })
+  #Mujer
+  output$chartMujer<-renderPlot({
+    
+    edadParejaAlMenosUnMenor<-filter(edadParejaAlMenosUnMenor,edadParejaAlMenosUnMenor$Año.de.registro<=input$slider)
+    EscoH<-edadParejaAlMenosUnMenor %>%
+      group_by(`Escolaridad.del.hombre`) %>%
+      tally()
+    
+    
+    EscoM<-edadParejaAlMenosUnMenor %>%
+      group_by(`Escolaridad.de.la.mujer`) %>%
+      tally()
+    
+    
+    EscolaridadHombre<-c(EscoH$`Escolaridad.del.hombre`)
+    CantidadEscolaridadHombre<-c(EscoH$n)
+    
+    EscoH<-data.frame(EscolaridadHombre,CantidadEscolaridadHombre)
+    # EscoH$EscolaridadHombre<-as.factor(EscoH$EscolaridadHombre)
+    
+    EscolaridadMujer<-c(EscoM$`Escolaridad.de.la.mujer`)
+    CantidadEscolaridadMujer<-c(EscoM$n)
+    
+    EscoM<-data.frame(EscolaridadMujer,CantidadEscolaridadMujer)
+    # EscoM$EscolaridadMujer<-as.factor(EscoM$EscolaridadMujer)
+    
+    EscoM$EscolaridadMujer[EscoM$EscolaridadMujer=='1']<-'Ninguno'
+    EscoM$EscolaridadMujer[EscoM$EscolaridadMujer=='2']<-'Primaria'
+    EscoM$EscolaridadMujer[EscoM$EscolaridadMujer=='3']<-'Basico'
+    EscoM$EscolaridadMujer[EscoM$EscolaridadMujer=='4']<-'Diversificado'
+    EscoM$EscolaridadMujer[EscoM$EscolaridadMujer=='5']<-'Universitario'
+    EscoM$EscolaridadMujer[EscoM$EscolaridadMujer=='6']<-'Postgrado'
+    EscoM$EscolaridadMujer[EscoM$EscolaridadMujer=='9']<-'Ignorado'
+    
+    ggplot(data=EscoM, aes(x=EscolaridadMujer, y=CantidadEscolaridadMujer,fill=EscolaridadMujer)) +
+      geom_bar(stat="identity", position=position_dodge())+
+      geom_text(aes(label=CantidadEscolaridadMujer), vjust=1.6, color="black",
+                position = position_dodge(0.9), size=3.5)+
+      labs(title="Escolaridad de los hombres con matrimonio", y="Cantidad de matrimonios ")+
+      theme(legend.position="none")
+    
+  })
+  output$piechartMujer<-renderPlot({
+    
+    edadParejaAlMenosUnMenor<-filter(edadParejaAlMenosUnMenor,edadParejaAlMenosUnMenor$Año.de.registro<=input$slider)
+    EscoH<-edadParejaAlMenosUnMenor %>%
+      group_by(`Escolaridad.del.hombre`) %>%
+      tally()
+    
+    
+    EscoM<-edadParejaAlMenosUnMenor %>%
+      group_by(`Escolaridad.de.la.mujer`) %>%
+      tally()
+    
+    
+    EscolaridadHombre<-c(EscoH$`Escolaridad.del.hombre`)
+    CantidadEscolaridadHombre<-c(EscoH$n)
+    
+    EscoH<-data.frame(EscolaridadHombre,CantidadEscolaridadHombre)
+    # EscoH$EscolaridadHombre<-as.factor(EscoH$EscolaridadHombre)
+    
+    EscolaridadMujer<-c(EscoM$`Escolaridad.de.la.mujer`)
+    CantidadEscolaridadMujer<-c(EscoM$n)
+    
+    EscoM<-data.frame(EscolaridadMujer,CantidadEscolaridadMujer)
+    # EscoM$EscolaridadMujer<-as.factor(EscoM$EscolaridadMujer)
+    
+    EscoM$EscolaridadMujer[EscoM$EscolaridadMujer=='1']<-'Ninguno'
+    EscoM$EscolaridadMujer[EscoM$EscolaridadMujer=='2']<-'Primaria'
+    EscoM$EscolaridadMujer[EscoM$EscolaridadMujer=='3']<-'Basico'
+    EscoM$EscolaridadMujer[EscoM$EscolaridadMujer=='4']<-'Diversificado'
+    EscoM$EscolaridadMujer[EscoM$EscolaridadMujer=='5']<-'Universitario'
+    EscoM$EscolaridadMujer[EscoM$EscolaridadMujer=='6']<-'Postgrado'
+    EscoM$EscolaridadMujer[EscoM$EscolaridadMujer=='9']<-'Ignorado'
+    
+    ggplot(data=EscoM, aes(x=EscolaridadMujer, y=CantidadEscolaridadMujer,fill=EscolaridadMujer)) +
+      geom_bar(stat="identity", position=position_dodge())+
+      geom_text(aes(label=CantidadEscolaridadMujer), vjust=1.6, color="black",
+                position = position_dodge(0.9), size=3.5)+
+      labs(title="Escolaridad de los hombres con matrimonio", y="Cantidad de matrimonios ")+
+      theme(legend.position="none")
+    
+    pd<-round(((CantidadEscolaridadMujer*100)/sum(EscoM$CantidadEscolaridadMujer)),digits = 2)
+    
+    
+    ggplot(EscoM, aes(x = "", y = pd, fill = EscolaridadMujer)) +
+      geom_col(color = "black") +
+      geom_label(aes(label = pd),
+                 position = position_stack(vjust = 0.5),
+                 show.legend = FALSE) +
+      coord_polar(theta = "y")+theme(legend.position = "bottom")+
+      labs(title="Porcentaje de escolaridad de las Mujeres")
+    
+  })
+  #
   # Filter data based on selected Style
-  
-  
+
+
   # output$plot1 <- renderPlot({
   #   data <- histdata[seq_len(input$slider)]
   #   hist(data)
