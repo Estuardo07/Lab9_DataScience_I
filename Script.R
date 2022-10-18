@@ -6,21 +6,23 @@ library(ggplot2)
 library(shinydashboard)
 
 ui <- dashboardPage(
+  skin = "yellow",
 
-  dashboardHeader(title = "Matrimonios con menores de edad en Guatemala del 2010 al 2020"),
+  dashboardHeader(title = "Matrimonios con menores de edad en Guatemala del 2010 al 2020",  titleWidth = 700),
   dashboardSidebar(disable = TRUE),
 
   dashboardBody(
     # Boxes need to be put in a row (or column)
     fluidRow(
       box(
+        title = "Histogram", background = "navy", solidHeader = TRUE,
       
         plotOutput("plot1")
       ),
       
       box(
 
-        title = "Year",
+        title = "Year", status = "primary",
 
 
         sliderInput("slider", "Number of observations:", 2010, 2020, 2017)
@@ -39,13 +41,13 @@ ui <- dashboardPage(
     
     # Boxes need to be put in a row (or column)
     fluidRow(
-      box(plotOutput("chartHombre")),
-      box(plotOutput("piechartHombre"))
+      box(status = "danger", plotOutput("chartHombre")),
+      box(status = "danger", plotOutput("piechartHombre"))
       
     ),
     fluidRow(
-      box(plotOutput("chartMujer")),
-      box(plotOutput("piechartMujer"))
+      box(status = "warning", plotOutput("chartMujer")),
+      box(status = "warning", plotOutput("piechartMujer"))
       
     ),
    
@@ -116,8 +118,8 @@ server <- function(input, output) {
     
     
     infoBox(
-      "Cantidad de matrimonios infantiles ", paste0(nrow(edadParejaAlMenosUnMenor)), icon = icon("list"),
-      color = "purple"
+      "Matrimonios infantiles", paste0(nrow(edadParejaAlMenosUnMenor)), icon = icon("alert", lib = "glyphicon"),
+      color = "yellow", fill = TRUE
     )
     
   })
@@ -128,8 +130,8 @@ server <- function(input, output) {
     
     
     infoBox(
-      "Cantidad de matrimonios de niños menores de 18 años ", paste0(sum(edadParejaAlMenosUnMenor$Edad.del.hombre<18)), icon = icon("list"),
-      color = "blue"
+      "Matrimonios de niños menores de 18 años", paste0(sum(edadParejaAlMenosUnMenor$Edad.del.hombre<18)), icon = icon("warning-sign", lib = "glyphicon"),
+      color = "navy", fill = TRUE
     )
     
   })
@@ -139,8 +141,8 @@ server <- function(input, output) {
     
     
     infoBox(
-      "Cantidad de matrimonios de niñas menores de 18 años ", paste0(sum(edadParejaAlMenosUnMenor$Edad.de.la.mujer<18)), icon = icon("list"),
-      color = "blue"
+      "Matrimonios de niñas menores de 18 años", paste0(sum(edadParejaAlMenosUnMenor$Edad.de.la.mujer<18)), icon = icon("exclamation-sign", lib = "glyphicon"),
+      color = "maroon", fill = TRUE
     )
     
   })
